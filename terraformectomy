@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# remove secrets from terraform state files
+
+state_file="terraform.tfstate"
+backup_state_file="terraform.tfstate.backup"
+removed="CENSORED_BY_TERRAFORMECTOMY"
+
+# Check command line arguments.
+if [ $# -lt 1 ]; then
+  echo "Usage: $0 \"secret1\" \"secret2\" \"secret3\"" >&2
+  exit 1
+fi
+
+for var in "$@"
+do
+    var=$(echo "$var" | sed 's/[]\/$*.^|[]/\\&/g')
+    if [ -f $state_file ]; then
+      sed -i '' "s/$var/$removed/g" $state_file
+    fi
+    if [ -f $backup_state_file ]; then
+      sed -i '' "s/$var/$removed/g" $backup_state_file
+    fi
+done
